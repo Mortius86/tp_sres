@@ -1,21 +1,19 @@
-import logging
-import sys
-import datetime
+import re
 import certstream
+import tqdm
+import entropy
+import logging
+from tld import get_tld
+from Levenshtein import distance
+from termcolor import colored, cprint
 
 
-def lev(a, b):
-    if not a: return len(b)
-    if not b: return len(a)
-    return min(lev(a[1:], b[1:])+(a[0] != b[0]), lev(a[1:], b)+1, lev(a, b[1:])+1)
-
-def main(message,context):
+def callback(message,context):
 	with open("baseBanquesFR.txt") as bdd:
 		for line in bdd:
-			print(lev(line, message['data']['source']['url']))
+			score = distance(str(line), str(message['data']['source']['url']))
+			tqdm.tqdm.write("%s" % score)
 
 logging.basicConfig(format='[%(levelname)s:%(name)s] %(asctime)s - %(message)s',level=logging.INFO)
 
-certstream.listen_for_events(main)
-
-main(message,context)
+certstream.listen_for_events(callback)
